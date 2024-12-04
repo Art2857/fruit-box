@@ -1,15 +1,20 @@
 {
   "files": {
-    "main.css": "/fruit-box/static/css/main.dace6681.css",
-    "main.js": "/fruit-box/static/js/main.a45e3086.js",
+    "main.css": "/fruit-box/static/css/main.23f5be63.css",
+    "main.js": "/fruit-box/static/js/main.1b84b627.js",
     "static/js/453.ce8573b8.chunk.js": "/fruit-box/static/js/453.ce8573b8.chunk.js",
+    "static/media/treasure-svgrepo-com.svg": "/fruit-box/static/media/treasure-svgrepo-com.98428f124db7eef402cb50dc96115ed0.svg",
+    "static/media/pointer-apple-and-orange.svg": "/fruit-box/static/media/pointer-apple-and-orange.ad0f083e5f17014c585d1fe2bc05c28f.svg",
+    "static/media/pointer-apple.svg": "/fruit-box/static/media/pointer-apple.18fb43b2dec3da13a09a04565e01e4d8.svg",
+    "static/media/pointer-orange.svg": "/fruit-box/static/media/pointer-orange.8fb7989feef1618836aeb5eee864bf3d.svg",
+    "static/media/ground-svgrepo-com.svg": "/fruit-box/static/media/ground-svgrepo-com.08461206557f0f141bcd73367cefcfe8.svg",
     "index.html": "/fruit-box/index.html",
-    "main.dace6681.css.map": "/fruit-box/static/css/main.dace6681.css.map",
-    "main.a45e3086.js.map": "/fruit-box/static/js/main.a45e3086.js.map",
+    "main.23f5be63.css.map": "/fruit-box/static/css/main.23f5be63.css.map",
+    "main.1b84b627.js.map": "/fruit-box/static/js/main.1b84b627.js.map",
     "453.ce8573b8.chunk.js.map": "/fruit-box/static/js/453.ce8573b8.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.dace6681.css",
-    "static/js/main.a45e3086.js"
+    "static/css/main.23f5be63.css",
+    "static/js/main.1b84b627.js"
   ]
 }
