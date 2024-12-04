@@ -1,23 +1,46 @@
 // src/game.ts
 
-// Перечисление фруктов
-export enum FruitEnum {
+// Названия коробок
+export enum FruitsEnum {
     Apple = 'Яблоки',
     AppleAndOrange = 'Яблоки и Апельсины',
     Orange = 'Апельсины',
 }
 
+// Взял
+export enum FruitEnum {
+    Apple = 'Яблоко',
+    Orange = 'Апельсин',
+}
+
 // Класс коробки
 export class Box {
     constructor(
-        public readonly label: FruitEnum,
+        public readonly label: FruitsEnum,
         public isOpen: boolean,
-        public prediction: FruitEnum | null = null,
-        public content: FruitEnum | null = null
+        public prediction: FruitsEnum | null = null,
+        public content: FruitsEnum | null = null,
+        public took: FruitEnum | null = null
     ) {}
 
     copy() {
         return new Box(this.label, this.isOpen, this.prediction, this.content);
+    }
+
+    // Метод для сериализации Box
+    public toJSON() {
+        return {
+            label: this.label,
+            isOpen: this.isOpen,
+            prediction: this.prediction,
+            content: this.content,
+            took: this.took,
+        };
+    }
+
+    // Статический метод для десериализации Box
+    public static fromJSON(json: any): Box {
+        return new Box(json.label, json.isOpen, json.prediction, json.content, json.took);
     }
 }
 
@@ -34,10 +57,31 @@ export class FruitGame {
 
     // Коробки
     public readonly _boxes: Box[] = [
-        new Box(FruitEnum.Apple, false),
-        new Box(FruitEnum.AppleAndOrange, false),
-        new Box(FruitEnum.Orange, false),
+        new Box(FruitsEnum.Apple, false),
+        new Box(FruitsEnum.AppleAndOrange, false),
+        new Box(FruitsEnum.Orange, false),
     ];
+
+    // Метод для сериализации FruitGame
+    public toJSON() {
+        return {
+            indexOpenedBox: this.indexOpenedBox,
+            boxes: this._boxes.map((box) => box.toJSON()),
+        };
+    }
+
+    // Статический метод для десериализации FruitGame
+    public static fromJSON(json: any): FruitGame {
+        const game = new FruitGame();
+        game.indexOpenedBox = json.indexOpenedBox;
+        game._boxes.length = 0; // Очищаем массив коробок
+        game._boxes.push(...json.boxes.map((boxJson: any) => Box.fromJSON(boxJson)));
+        return game;
+    }
+
+    public clone(): FruitGame {
+        return FruitGame.fromJSON(this.toJSON());
+    }
 
     // Метод для рестарта
     public restart() {
@@ -61,23 +105,35 @@ export class FruitGame {
         this.indexOpenedBox = indexBox;
         const box = this._boxes[indexBox];
 
-        if (box.label === FruitEnum.AppleAndOrange) {
-            box.content = [FruitEnum.Apple, FruitEnum.Orange][Math.floor(Math.random() * 2)];
+        if (box.label === FruitsEnum.AppleAndOrange) {
+            box.took = [FruitEnum.Apple, FruitEnum.Orange][Math.floor(Math.random() * 2)];
+            box.content = box.took === FruitEnum.Apple ? FruitsEnum.Apple : FruitsEnum.Orange;
+
+            const [apple, appleAndOrange, orange] = this._boxes;
+            apple.content = FruitsEnum.AppleAndOrange;
+            appleAndOrange.content = FruitsEnum.Orange;
+            orange.content = FruitsEnum.Apple;
+
+            if (box.took === FruitEnum.Apple) {
+                apple.content = FruitsEnum.Orange;
+                appleAndOrange.content = FruitsEnum.Apple;
+                orange.content = FruitsEnum.AppleAndOrange;
+            }
         }
 
-        if (box.label === FruitEnum.Apple) {
-            box.content = FruitEnum.AppleAndOrange;
+        if (box.label === FruitsEnum.Apple) {
+            box.took = FruitEnum.Orange;
         }
 
-        if (box.label === FruitEnum.Orange) {
-            box.content = FruitEnum.AppleAndOrange;
+        if (box.label === FruitsEnum.Orange) {
+            box.took = FruitEnum.Apple;
         }
 
         box.isOpen = true;
     }
 
     // Указываем предположения только после открытия первой коробки
-    public setPrediction(indexBox: number, prediction: FruitEnum): void {
+    public setPrediction(indexBox: number, prediction: FruitsEnum): void {
         if (this.indexOpenedBox === null) throw new Error('Function only for subsequent openings');
 
         if (indexBox === this.indexOpenedBox) throw new Error('Cannot predict opened box');
@@ -111,83 +167,129 @@ export class FruitGame {
             throw new Error('Box is already opened');
         }
 
-        const openedBox = this._boxes[this.indexOpenedBox];
-
-        if (openedBox.label === FruitEnum.AppleAndOrange) {
-            if (openedBox.content === FruitEnum.Orange) {
-                if (box.label === FruitEnum.Apple) {
-                    box.content = FruitEnum.AppleAndOrange;
-                }
-
-                if (box.label === FruitEnum.Orange) {
-                    box.content = FruitEnum.Apple;
-                }
-            }
-
-            if (openedBox.content === FruitEnum.Apple) {
-                if (box.label === FruitEnum.Orange) {
-                    box.content = FruitEnum.AppleAndOrange;
-                }
-
-                if (box.label === FruitEnum.Apple) {
-                    box.content = FruitEnum.Orange;
-                }
-            }
-        } else {
-            if (openedBox.label === FruitEnum.Apple) {
-                if (box.label === FruitEnum.AppleAndOrange) {
-                    if (box.prediction === FruitEnum.Orange) {
-                        box.content = FruitEnum.Apple;
-                    }
-
-                    if (box.prediction === FruitEnum.Apple) {
-                        box.content = FruitEnum.Orange;
-                    }
-
-                    if (box.prediction === FruitEnum.AppleAndOrange) {
-                        throw new YouLostError();
-                    }
-                }
-
-                if (box.label === FruitEnum.Orange) {
-                    box.content = FruitEnum.Apple;
-
-                    if (box.prediction !== FruitEnum.Apple) {
-                        throw new YouLostError();
-                    }
-                }
-            }
-
-            if (openedBox.label === FruitEnum.Orange) {
-                if (box.label === FruitEnum.AppleAndOrange) {
-                    if (box.prediction === FruitEnum.Orange) {
-                        box.content = FruitEnum.Apple;
-                    }
-
-                    if (box.prediction === FruitEnum.Apple) {
-                        box.content = FruitEnum.Orange;
-                    }
-
-                    if (box.prediction === FruitEnum.AppleAndOrange) {
-                        throw new YouLostError();
-                    }
-                }
-
-                if (box.label === FruitEnum.Apple) {
-                    box.content = FruitEnum.Orange;
-
-                    if (box.prediction !== FruitEnum.Orange) {
-                        throw new YouLostError();
-                    }
-                }
-            }
-        }
-
         box.isOpen = true;
 
+        const openedBox = this._boxes[this.indexOpenedBox];
+
+        const [apple, appleAndOrange, orange] = this._boxes;
+
+        if (openedBox.label === FruitsEnum.AppleAndOrange) {
+            // Правильный вариант
+            // if (openedBox.content === FruitsEnum.Orange) {
+            //     if (box.label === FruitsEnum.Apple) {
+            //         box.content = FruitsEnum.AppleAndOrange;
+            //     }
+            //     if (box.label === FruitsEnum.Orange) {
+            //         box.content = FruitsEnum.Apple;
+            //     }
+            // }
+            // if (openedBox.content === FruitsEnum.Apple) {
+            //     if (box.label === FruitsEnum.Orange) {
+            //         box.content = FruitsEnum.AppleAndOrange;
+            //     }
+            //     if (box.label === FruitsEnum.Apple) {
+            //         box.content = FruitsEnum.Orange;
+            //     }
+            // }
+        } else {
+            if (openedBox.label === FruitsEnum.Apple) {
+                openedBox.content = FruitsEnum.Orange;
+                appleAndOrange.content = FruitsEnum.Apple;
+                orange.content = FruitsEnum.AppleAndOrange;
+
+                if (
+                    appleAndOrange.prediction === FruitsEnum.Apple &&
+                    orange.prediction === FruitsEnum.AppleAndOrange
+                ) {
+                    apple.content = FruitsEnum.AppleAndOrange;
+                    appleAndOrange.content = FruitsEnum.Orange;
+                    orange.content = FruitsEnum.Apple;
+                }
+            }
+
+            if (openedBox.label === FruitsEnum.Orange) {
+                apple.content = FruitsEnum.AppleAndOrange;
+                appleAndOrange.content = FruitsEnum.Orange;
+                openedBox.content = FruitsEnum.Apple;
+
+                if (
+                    apple.prediction === FruitsEnum.AppleAndOrange &&
+                    appleAndOrange.prediction === FruitsEnum.Orange
+                ) {
+                    apple.content = FruitsEnum.Orange;
+                    appleAndOrange.content = FruitsEnum.Apple;
+                    orange.content = FruitsEnum.AppleAndOrange;
+                }
+            }
+
+            // Неправильный вариант
+            /*if (openedBox.label === FruitsEnum.Apple) {
+                if (box.label === FruitsEnum.AppleAndOrange) {
+                    if (box.prediction === FruitsEnum.Apple) {
+                        box.content = FruitsEnum.Orange;
+                    }
+
+                    if (box.prediction === FruitsEnum.Orange) {
+                        box.content = FruitsEnum.Apple;
+                    }
+
+                    if (box.prediction === FruitsEnum.AppleAndOrange) {
+                        throw new YouLostError();
+                    }
+                }
+
+                if (box.label === FruitsEnum.Orange) {
+                    if (box.prediction === FruitsEnum.AppleAndOrange) {
+                        box.content = FruitsEnum.Apple;
+                    }
+
+                    if (box.prediction === FruitsEnum.Apple) {
+                        box.content = FruitsEnum.AppleAndOrange;
+                    }
+
+                    if (box.prediction === FruitsEnum.Orange) {
+                        throw new YouLostError();
+                    }
+                }
+            }
+
+            if (openedBox.label === FruitsEnum.Orange) {
+                if (box.label === FruitsEnum.AppleAndOrange) {
+                    if (box.prediction === FruitsEnum.Orange) {
+                        box.content = FruitsEnum.Apple;
+                    }
+
+                    if (box.prediction === FruitsEnum.Apple) {
+                        box.content = FruitsEnum.Orange;
+                    }
+
+                    if (box.prediction === FruitsEnum.AppleAndOrange) {
+                        throw new YouLostError();
+                    }
+                }
+
+                if (box.label === FruitsEnum.Apple) {
+                    box.content = FruitsEnum.Orange;
+
+                    if (box.prediction !== FruitsEnum.Orange) {
+                        throw new YouLostError();
+                    }
+                }
+            }*/
+        }
+
         const isEveryOpened = this._boxes.every((box) => box.isOpen);
+
+        if (isEveryOpened) {
+            this._boxes[this.indexOpenedBox].took = null;
+        }
+
         return isEveryOpened;
     }
+
+    // worstContent() {
+    //     if () {}
+    // }
 
     // Метод для открытия коробок
     public open(indexBox: number) {

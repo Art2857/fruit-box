@@ -1,15 +1,16 @@
 import React from 'react';
-import { FruitEnum } from './game';
+import { FruitEnum, FruitsEnum } from './game';
 
 interface BoxProps {
-    label: FruitEnum;
+    label: FruitsEnum;
     isOpen: boolean;
-    content: FruitEnum | null;
-    prediction: FruitEnum | null;
+    content: FruitsEnum | null;
+    prediction: FruitsEnum | null;
+    took: FruitEnum | null;
     onClick: () => void;
-    onPredictionChange?: (value: FruitEnum) => void;
+    onPredictionChange?: (value: FruitsEnum) => void;
     showPrediction: boolean;
-    canChangePrediction: boolean; // Новый проп
+    canChangePrediction: boolean;
 }
 
 const BoxComponent: React.FC<BoxProps> = ({
@@ -17,6 +18,7 @@ const BoxComponent: React.FC<BoxProps> = ({
     isOpen,
     content,
     prediction,
+    took,
     onClick,
     onPredictionChange,
     showPrediction,
@@ -34,7 +36,18 @@ const BoxComponent: React.FC<BoxProps> = ({
             }}
         >
             <h3>{label}</h3>
-            {isOpen && <p>Внутри: {content}</p>}
+
+            {isOpen &&
+                (took ? (
+                    <p>
+                        {`Вы достали из коробки:`} <b>{took}</b>
+                    </p>
+                ) : (
+                    <p>
+                        {'Внутри: '}
+                        <b>{content}</b>
+                    </p>
+                ))}
             {showPrediction &&
                 (isOpen ? (
                     prediction && <p>Ваш выбор: {prediction}</p>
@@ -43,15 +56,15 @@ const BoxComponent: React.FC<BoxProps> = ({
                         <select
                             value={prediction || ''}
                             onChange={(e) =>
-                                onPredictionChange && onPredictionChange(e.target.value as FruitEnum)
+                                onPredictionChange && onPredictionChange(e.target.value as FruitsEnum)
                             }
                             onClick={(e) => e.stopPropagation()}
-                            disabled={!canChangePrediction} // Блокируем изменение предсказания
+                            disabled={!canChangePrediction}
                         >
                             <option value="">Выберите содержимое</option>
-                            <option value={FruitEnum.Apple}>{FruitEnum.Apple}</option>
-                            <option value={FruitEnum.Orange}>{FruitEnum.Orange}</option>
-                            <option value={FruitEnum.AppleAndOrange}>{FruitEnum.AppleAndOrange}</option>
+                            <option value={FruitsEnum.Apple}>{FruitsEnum.Apple}</option>
+                            <option value={FruitsEnum.Orange}>{FruitsEnum.Orange}</option>
+                            <option value={FruitsEnum.AppleAndOrange}>{FruitsEnum.AppleAndOrange}</option>
                         </select>
                         <br />
                         <button onClick={onClick} style={{ marginTop: '10px' }}>
@@ -59,6 +72,7 @@ const BoxComponent: React.FC<BoxProps> = ({
                         </button>
                     </>
                 ))}
+
             {!showPrediction && !isOpen && <button onClick={onClick}>Открыть</button>}
         </div>
     );
