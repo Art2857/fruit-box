@@ -158,7 +158,7 @@ export class FruitGame {
             .every((box) => box.prediction !== null);
 
         if (!isPredicted) {
-            throw new Error('Not all boxes are predicted');
+            throw new Error('Не все ящики предсказаны, выберите остальные предсказания');
         }
 
         const box = this._boxes[indexBox];

@@ -95,20 +95,21 @@ const App: React.FC = () => {
     return (
         <div style={{ textAlign: 'center', userSelect: 'none' }}>
             <h1>Игра с коробками</h1>
-            <p style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <p style={{ maxWidth: '800px', margin: '0 auto', marginTop: '20px', fontSize: '18px' }}>
                 Есть три коробки: в одной лежат только яблоки, в другой — только апельсины, а в третьей — и
                 яблоки, и апельсины. Однако все коробки подписаны неправильно: на коробке с яблоками не может
                 быть написано "яблоки", на коробке с апельсинами — "апельсины", и на коробке с обоими фруктами
                 — "яблоки и апельсины". Вам можно достать только один фрукт из любой коробки и по нему
                 определить, что находится в остальных коробках.
                 <p>Опишите алгоритм, как гарантированно определить, что находится в каждой коробке.</p>
+                <br></br>
                 <b style={{ color: '#992211' }}>
                     У вас есть всего одна попытка! <br></br>Прежде чем открывать первую коробку, попробуйте
                     определить, что находится в остальных коробках, так как начать заново нельзя!
                 </b>
             </p>
 
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '50px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '90px' }}>
                 {game._boxes.map((box, index) => (
                     <BoxComponent
                         key={index}
@@ -124,8 +125,10 @@ const App: React.FC = () => {
                     />
                 ))}
             </div>
-            {gameState === 'won' && <h2>Поздравляем! Вы победили!</h2>}
-            {gameState === 'lost' && <h2>К сожалению, вы проиграли.</h2>}
+            <div style={{ marginTop: '140px', fontSize: '36px' }}>
+                {gameState === 'won' && <h2 style={{ color: '#119922' }}>Поздравляем! Вы победили!</h2>}
+                {gameState === 'lost' && <h2 style={{ color: '#992211' }}>К сожалению, вы проиграли.</h2>}
+            </div>
             {/* {(gameState === 'won' || gameState === 'lost') && (
                 <button onClick={handleRestart}>Начать заново</button>
             )} */}
