@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Art2857/fruit-box/static/css/main.dace6681.css",
+    "main.js": "/Art2857/fruit-box/static/js/main.6f07ab85.js",
+    "static/js/453.ce8573b8.chunk.js": "/Art2857/fruit-box/static/js/453.ce8573b8.chunk.js",
+    "index.html": "/Art2857/fruit-box/index.html",
+    "main.dace6681.css.map": "/Art2857/fruit-box/static/css/main.dace6681.css.map",
+    "main.6f07ab85.js.map": "/Art2857/fruit-box/static/js/main.6f07ab85.js.map",
+    "453.ce8573b8.chunk.js.map": "/Art2857/fruit-box/static/js/453.ce8573b8.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.dace6681.css",
+    "static/js/main.6f07ab85.js"
+  ]
+}
