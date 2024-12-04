@@ -1,3 +1,5 @@
+// src/game.ts
+
 // Перечисление фруктов
 export enum FruitEnum {
     Apple = 'Яблоки',
@@ -28,14 +30,10 @@ export class YouLostError extends Error {
 
 export class FruitGame {
     // Открыта ли первая коробка
-    private _indexOpenedBox: number | null = null;
-
-    get indexOpenedBox(): number | null {
-        return this._indexOpenedBox;
-    }
+    public indexOpenedBox: number | null = null;
 
     // Коробки
-    private readonly _boxes: Box[] = [
+    public readonly _boxes: Box[] = [
         new Box(FruitEnum.Apple, false),
         new Box(FruitEnum.AppleAndOrange, false),
         new Box(FruitEnum.Orange, false),
@@ -43,7 +41,7 @@ export class FruitGame {
 
     // Метод для рестарта
     public restart() {
-        this._indexOpenedBox = null;
+        this.indexOpenedBox = null;
 
         this._boxes.forEach((box: Box) => {
             box.isOpen = false;
@@ -58,9 +56,9 @@ export class FruitGame {
 
     // Только для открытия первой коробки
     private openOne(indexBox: number): void {
-        if (this._indexOpenedBox !== null) throw new Error('Function only for first opening');
+        if (this.indexOpenedBox !== null) throw new Error('Function only for first opening');
 
-        this._indexOpenedBox = indexBox;
+        this.indexOpenedBox = indexBox;
         const box = this._boxes[indexBox];
 
         if (box.label === FruitEnum.AppleAndOrange) {
@@ -80,18 +78,24 @@ export class FruitGame {
 
     // Указываем предположения только после открытия первой коробки
     public setPrediction(indexBox: number, prediction: FruitEnum): void {
-        if (this._indexOpenedBox === null) throw new Error('Function only for subsequent openings');
+        if (this.indexOpenedBox === null) throw new Error('Function only for subsequent openings');
 
-        if (indexBox === this._indexOpenedBox) throw new Error('Box is opened');
+        if (indexBox === this.indexOpenedBox) throw new Error('Cannot predict opened box');
+
+        const openedOnlyOne = this._boxes.filter((box) => box.isOpen === true).length === 1;
+
+        if (!openedOnlyOne) {
+            throw new Error('Only one box can be opened at a time');
+        }
 
         const box = this._boxes[indexBox];
 
         box.prediction = prediction;
     }
 
-    // Только для открытия второй коробки, после того как все предположения были указаны
+    // Только для открытия остальных коробок, после того как все предположения были указаны
     private openOther(indexBox: number): boolean {
-        if (this._indexOpenedBox === null) throw new Error('Function only for subsequent openings');
+        if (this.indexOpenedBox === null) throw new Error('Function only for subsequent openings');
 
         const isPredicted = this._boxes
             .filter((box) => box.isOpen === false)
@@ -107,12 +111,12 @@ export class FruitGame {
             throw new Error('Box is already opened');
         }
 
-        const openedBox = this._boxes[this._indexOpenedBox];
+        const openedBox = this._boxes[this.indexOpenedBox];
 
         if (openedBox.label === FruitEnum.AppleAndOrange) {
             if (openedBox.content === FruitEnum.Orange) {
                 if (box.label === FruitEnum.Apple) {
-                    box.content = FruitEnum.Orange;
+                    box.content = FruitEnum.AppleAndOrange;
                 }
 
                 if (box.label === FruitEnum.Orange) {
@@ -122,7 +126,7 @@ export class FruitGame {
 
             if (openedBox.content === FruitEnum.Apple) {
                 if (box.label === FruitEnum.Orange) {
-                    box.content = FruitEnum.Apple;
+                    box.content = FruitEnum.AppleAndOrange;
                 }
 
                 if (box.label === FruitEnum.Apple) {
@@ -187,12 +191,21 @@ export class FruitGame {
 
     // Метод для открытия коробок
     public open(indexBox: number) {
-        if (this._indexOpenedBox !== null) {
+        if (this.indexOpenedBox === null) {
+            this.openOne(indexBox);
+            return false;
+        } else {
             return this.openOther(indexBox);
         }
+    }
 
-        this.openOne(indexBox);
-
-        return false;
+    // Метод для проверки победы
+    public checkWin(): boolean {
+        return this._boxes.every((box) => {
+            if (box.isOpen && box.prediction) {
+                return box.prediction === box.content;
+            }
+            return true;
+        });
     }
 }

@@ -1,5 +1,3 @@
-// src/App.tsx
-
 import React, { useState } from 'react';
 import BoxComponent from './BoxComponent';
 import { FruitGame, Box, FruitEnum, YouLostError } from './game';
@@ -10,16 +8,13 @@ const App: React.FC = () => {
     const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>('playing');
 
     const handleBoxClick = (index: number) => {
-        if (gameState !== 'playing') return;
-
         try {
             const isFinished = game.open(index);
             setBoxes(game.boxes);
 
             if (isFinished) {
                 // Проверяем, выиграл ли пользователь
-                const isWin = game.boxes.every((box) => box.prediction === box.content || box.isOpen);
-
+                const isWin = game.checkWin();
                 setGameState(isWin ? 'won' : 'lost');
             }
         } catch (error: any) {
@@ -33,11 +28,16 @@ const App: React.FC = () => {
     };
 
     const handlePredictionChange = (index: number, value: FruitEnum) => {
-        try {
-            game.setPrediction(index, value);
-            setBoxes(game.boxes);
-        } catch (error: any) {
-            alert(error.message);
+        const numBoxesOpened = boxes.filter((box) => box.isOpen).length;
+        if (numBoxesOpened < 2 && gameState === 'playing') {
+            try {
+                game.setPrediction(index, value);
+                setBoxes(game.boxes);
+            } catch (error: any) {
+                alert(error.message);
+            }
+        } else {
+            alert('Вы больше не можете менять свой выбор');
         }
     };
 
@@ -48,9 +48,20 @@ const App: React.FC = () => {
         setGameState('playing');
     };
 
+    const numBoxesOpened = boxes.filter((box) => box.isOpen).length;
+    const canChangePrediction = numBoxesOpened < 2 && gameState === 'playing';
+
     return (
         <div style={{ textAlign: 'center' }}>
             <h1>Игра с коробками</h1>
+            <p style={{ maxWidth: '600px', margin: '0 auto' }}>
+                Есть три коробки: в одной лежат только яблоки, в другой — только апельсины, а в третьей — и
+                яблоки, и апельсины. Однако все коробки подписаны неправильно: на коробке с яблоками не может
+                быть написано "яблоки", на коробке с апельсинами — "апельсины", и на коробке с обоими фруктами
+                — "яблоки и апельсины". Вам можно достать только один фрукт из любой коробки и по нему
+                определить, что находится в остальных коробках. Опишите алгоритм, как гарантированно
+                определить, что находится в каждой коробке.
+            </p>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
                 {boxes.map((box, index) => (
                     <BoxComponent
@@ -62,6 +73,7 @@ const App: React.FC = () => {
                         onClick={() => handleBoxClick(index)}
                         onPredictionChange={(value) => handlePredictionChange(index, value)}
                         showPrediction={game.indexOpenedBox !== null && index !== game.indexOpenedBox}
+                        canChangePrediction={canChangePrediction}
                     />
                 ))}
             </div>
