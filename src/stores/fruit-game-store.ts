@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { BoxEnum, FruitGame } from '../composables/use-game'
+import { ChestEnum, FruitGame } from '../composables/use-game'
 
 export const useFruitGameStore = defineStore('fruitGame', {
   state: () => ({
@@ -22,7 +22,7 @@ export const useFruitGameStore = defineStore('fruitGame', {
         alert(error.message)
       }
     },
-    setPrediction(index: number, prediction: BoxEnum) {
+    setPrediction(index: number, prediction: ChestEnum) {
       if (this.gameState !== 'playing') return
       try {
         this.game.setPrediction(index, prediction)
@@ -36,10 +36,10 @@ export const useFruitGameStore = defineStore('fruitGame', {
     },
     saveState() {
       const stateToSave = { game: this.game, gameState: this.gameState }
-      localStorage.setItem('fruitGameState', JSON.stringify(stateToSave))
+      localStorage.setItem('coinGameState', JSON.stringify(stateToSave))
     },
     loadState() {
-      const savedState = localStorage.getItem('fruitGameState')
+      const savedState = localStorage.getItem('coinGameState')
       if (savedState) {
         try {
           const json = JSON.parse(savedState)

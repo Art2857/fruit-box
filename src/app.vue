@@ -3,14 +3,14 @@ import TWallpaper from '@twallpaper/vue'
 import { onMounted, ref, watch } from 'vue'
 import box from './components/box.vue'
 import notification from './components/notification.vue'
-import { BoxEnum, FruitGame } from './composables/use-game'
+import { ChestEnum, FruitGame } from './composables/use-game'
 import { useNotification } from './composables/use-notification'
 import type { TWallpaperOptions } from '@twallpaper/vue'
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-expect-error
 import '@twallpaper/vue/css'
 
-const STORAGE_KEY = 'fruitGameState'
+const STORAGE_KEY = 'coinGameState'
 const game = ref<FruitGame | null>(null)
 const gameState = ref<'playing' | 'won' | 'lost'>('playing')
 const { showNotification } = useNotification()
@@ -49,7 +49,7 @@ function handleBoxClick(index: number) {
     showNotification(error.message)
   }
 }
-function handlePredictionChange(index: number, value: BoxEnum) {
+function handlePredictionChange(index: number, value: ChestEnum) {
   if (!game.value || gameState.value !== 'playing') return
   try {
     game.value.setPrediction(index, value)
@@ -87,7 +87,7 @@ const options = ref<TWallpaperOptions>({
   pattern: {
     mask: false,
     opacity: 0.3,
-    image: 'https://twallpaper.js.org/patterns/math.svg',
+    image: 'https://twallpaper.js.org/patterns/underwater_world.svg',
   },
 })
 </script>
@@ -114,12 +114,13 @@ const options = ref<TWallpaperOptions>({
   <div v-else>
     <div class="centered-container">
       <p style="font-size: 50px; text-shadow: 0px 1px 16px rgba(0, 0, 0, 0.4);">
-        Игра с коробками
+        Загадка с сундуками
       </p>
       <p style="max-width: 800px; max-height: 25%; font-size: 25px; text-shadow: 0px 1px 16px rgba(0, 0, 0, 0.4);">
-        Есть три коробки: в одной лежат только яблоки, в другой — только апельсины, а в третьей — и яблоки, и апельсины. Однако все коробки подписаны неправильно: на коробке с яблоками не может быть написано "яблоки", на коробке с апельсинами — "апельсины", и на коробке с обоими фруктами — "яблоки и апельсины". Вам можно достать только один фрукт из любой коробки и по нему определить, что находится в остальных коробках.<br><br>
+        Есть три сундука: в одном лежат только золотые монеты, в другом — только серебрянные, а в третьем — и золотые, и серебрянные. Однако все сундуки подписаны неправильно. Вам можно достать только одну монету из любого сундука и по ней определить, что находится в остальных сундуках.
+        <br><br>
         <b style="color: #992211;">
-          Вы можете открыть только одну коробку!
+          Вы можете открыть только один сундук!
         </b>
       </p>
       <div v-if="game" class="box-container mobile">
@@ -186,7 +187,6 @@ button {
 }
 
 .centered-container {
-    user-select: none;
     width: 80%;
     margin: auto;
     margin-top: 10vh;
@@ -195,6 +195,7 @@ button {
     justify-content: center;
     align-items: center;
     text-align: center;
+    user-select: none;
 }
 
 .box-container {

@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { computed, ref, toRefs, watch } from 'vue'
-import { BoxEnum } from '../composables/use-game'
+import { ChestEnum } from '../composables/use-game'
 
 interface Props {
-  label: BoxEnum
+  label: ChestEnum
   isOpen: boolean
-  content: BoxEnum | null
-  prediction: BoxEnum | null
+  content: ChestEnum | null
+  prediction: ChestEnum | null
   took: string | null
   showPrediction: boolean
   canChangePrediction: boolean
@@ -15,11 +15,11 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   (event: 'click'): void
-  (event: 'prediction-change', value: BoxEnum): void
+  (event: 'prediction-change', value: ChestEnum): void
 }>()
 function onPredictionChangeInternal(e: Event) {
   const target = e.target as HTMLSelectElement
-  const value = target.value as BoxEnum
+  const value = target.value as ChestEnum
   emit('prediction-change', value)
 }
 
@@ -29,14 +29,14 @@ watch(prediction, (newVal) => {
   localPrediction.value = newVal || ''
 })
 const fruitOptions = computed(() => [
-  { value: BoxEnum.APPLE, label: BoxEnum.APPLE },
-  { value: BoxEnum.ORANGE, label: BoxEnum.ORANGE },
-  { value: BoxEnum.MIXED, label: BoxEnum.MIXED },
+  { value: ChestEnum.GOLD, label: ChestEnum.GOLD },
+  { value: ChestEnum.SILVER, label: ChestEnum.SILVER },
+  { value: ChestEnum.MIXED, label: ChestEnum.MIXED },
 ])
-const boxImageSrc = computed(() => {
-  if (label.value === BoxEnum.APPLE) return './frame-apple.webp'
-  if (label.value === BoxEnum.ORANGE) return './frame-orange.webp'
-  if (label.value === BoxEnum.MIXED) return './frame-mixed.webp'
+const chestImageSrc = computed(() => {
+  if (label.value === ChestEnum.GOLD) return './chest-gold.webp'
+  if (label.value === ChestEnum.SILVER) return './chest-silver.webp'
+  if (label.value === ChestEnum.MIXED) return './chest-mixed.webp'
   return ''
 })
 function handleClick() {
@@ -45,16 +45,16 @@ function handleClick() {
 </script>
 
 <template>
-  <div class="box-container" style="user-select: none;">
+  <div class="box-container">
     <div v-if="!isOpen" class="box" @click="handleClick">
       <div style="min-height: 70px; padding-bottom: 20px;">
-        <img style="width: 200px;" :src="boxImageSrc" alt="box">
+        <img style="width: 200px;" :src="chestImageSrc" alt="chest">
       </div>
       <transition name="fade">
-        <img v-if="!isOpen" style="width: 200px; height: 200px;" src="/box-closed.webp" alt="box">
+        <img v-if="!isOpen" style="width: 200px; height: 200px;" src="/chest-closed.webp" alt="chest">
       </transition>
       <div v-if="showPrediction">
-        <select v-model="localPrediction" style="border: 0; background-color: rgba(255, 255, 255, 0.4); padding: 10px; font-size: 13px;" :disabled="!canChangePrediction" @click.stop @change="onPredictionChangeInternal">
+        <select v-model="localPrediction" style="border: 0; background-color: rgba(255, 255, 255, 0.4); padding: 10px; font-size: 15px;" :disabled="!canChangePrediction" @click.stop @change="onPredictionChangeInternal">
           <option value="">
             Выберите содержимое
           </option>
@@ -66,10 +66,10 @@ function handleClick() {
     </div>
     <div v-else class="box">
       <div style="min-height: 70px; padding-bottom: 20px;">
-        <img style="width: 200px;" :src="boxImageSrc" alt="box">
+        <img style="width: 200px;" :src="chestImageSrc" alt="chest">
       </div>
       <transition>
-        <img v-if="isOpen" style="width: 200px; height: 200px;" src="/box-opened.webp" alt="box">
+        <img v-if="isOpen" style="width: 200px; height: 200px;" src="/chest-opened.webp" alt="chest">
       </transition>
       <div v-if="took">
         <div class="text">
