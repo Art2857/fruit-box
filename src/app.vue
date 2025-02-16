@@ -15,6 +15,8 @@ const game = ref<FruitGame | null>(null)
 const gameState = ref<'playing' | 'won' | 'lost'>('playing')
 const { showNotification } = useNotification()
 const attempts = ref(1)
+const isButtonVisible = ref(false)
+
 function loadGame() {
   const savedState = localStorage.getItem(STORAGE_KEY)
   if (savedState) {
@@ -34,13 +36,16 @@ function loadGame() {
     attempts.value = 1
   }
 }
+
 onMounted(loadGame)
+
 watch([game, gameState, attempts], () => {
   if (game.value) {
     const stateToSave = { game: game.value, gameState: gameState.value, attempts: attempts.value }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
   }
 }, { deep: true })
+
 function handleBoxClick(index: number) {
   if (!game.value || gameState.value !== 'playing') return
   try {
@@ -48,7 +53,9 @@ function handleBoxClick(index: number) {
   } catch (error: any) {
     showNotification(error.message)
   }
+  isButtonVisible.value = true
 }
+
 function handlePredictionChange(index: number, value: BoxEnum) {
   if (!game.value || gameState.value !== 'playing') return
   try {
@@ -57,6 +64,7 @@ function handlePredictionChange(index: number, value: BoxEnum) {
     showNotification(error.message)
   }
 }
+
 function handleCheck() {
   if (!game.value) return
   try {
@@ -66,12 +74,15 @@ function handleCheck() {
     showNotification(error.message)
   }
 }
+
 function handleRestart() {
   attempts.value++
   localStorage.removeItem(STORAGE_KEY)
   game.value = new FruitGame()
   gameState.value = 'playing'
+  isButtonVisible.value = false
 }
+
 const canChangePrediction = ref(true)
 const twallpaper = ref<InstanceType<typeof TWallpaper>>()
 const options = ref<TWallpaperOptions>({
@@ -94,30 +105,32 @@ const options = ref<TWallpaperOptions>({
 
 <template>
   <div v-if="gameState === 'lost'" class="loss-screen fullscreen">
-    <div style="display: flex; flex-direction: column; align-items: center; ">
+    <div style="display: flex; flex-direction: column; align-items: center;">
       <div class="text">
-        {{ "Ты проиграл" }}
+        Ты проиграл
       </div>
-      <button class="button" style="margin-top: 50px;" @click="handleRestart">
+      <button class="button" @click="handleRestart">
         Начать заново
       </button>
     </div>
   </div>
   <div v-else-if="gameState === 'won'" class="win-screen fullscreen" style="display: flex; flex-direction: column; align-items: center;">
     <div class="text">
-      {{ 'Ты победил' }}
+      Ты победил
     </div>
-    <div class="text" style="font-size: 5vw;">
-      {{ `попыток потрачено: ${attempts}` }}
+    <div class="text" style="font-size: clamp(32px, 5vw, 48px);">
+      {{ `Попыток потрачено: ${attempts}` }}
     </div>
   </div>
-  <div v-else>
+  <div v-else class="fullscreen">
     <div class="centered-container">
-      <p style="font-size: 50px; text-shadow: 0px 1px 16px rgba(0, 0, 0, 0.4);">
+      <p style="font-size: clamp(2rem, 3.5vw, 2.5rem); text-shadow: 0px 1px 16px rgba(0, 0, 0, 0.4);">
         Игра с коробками
       </p>
-      <p style="max-width: 800px; max-height: 25%; font-size: 25px; text-shadow: 0px 1px 16px rgba(0, 0, 0, 0.4);">
-        Есть три коробки: в одной лежат только яблоки, в другой — только апельсины, а в третьей — и яблоки, и апельсины. Однако все коробки подписаны неправильно: на коробке с яблоками не может быть написано "яблоки", на коробке с апельсинами — "апельсины", и на коробке с обоими фруктами — "яблоки и апельсины". Вам можно достать только один фрукт из любой коробки и по нему определить, что находится в остальных коробках.<br><br>
+      <p style="max-width: 80rem; padding-bottom: 20px; font-size: clamp(1rem, 2vw, 1.5rem); text-shadow: 0px 1px 16px rgba(0, 0, 0, 0.4);">
+        Есть три коробки: в одной лежат только яблоки, в другой — только апельсины, а в третьей — и яблоки, и апельсины. Однако все коробки подписаны неправильно: на коробке с яблоками не может быть написано "яблоки", на коробке с апельсинами — "апельсины", и на коробке с обоими фруктами — "яблоки и апельсины". Вам можно достать только один фрукт из любой коробки и по нему определить содержимое остальных.
+        <b>Опишите алгоритм, как гарантированно определить, что находится в каждой коробке.</b>
+        <br><br>
         <b style="color: #992211;">
           Вы можете открыть только одну коробку!
         </b>
@@ -137,15 +150,15 @@ const options = ref<TWallpaperOptions>({
           @prediction-change="handlePredictionChange(index, $event)"
         />
       </div>
-      <div v-if="game && game.firstOpenedIndex !== null && game.boxes.filter(b => !b.isOpen).length > 0" class="button-container">
+      <div
+        class="button-container"
+        :class="{ visible: isButtonVisible }"
+      >
         <button class="button" style="background-color: #023E8A; margin-bottom: 40px;" @click="handleCheck">
           Проверить
         </button>
       </div>
-      <TWallpaper
-        ref="twallpaper"
-        :options="options"
-      />
+      <TWallpaper ref="twallpaper" :options="options" />
     </div>
     <notification />
   </div>
@@ -153,69 +166,66 @@ const options = ref<TWallpaperOptions>({
 
 <style scoped>
 button {
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: clamp(12px, 2.5vw, 24px) clamp(24px, 4vw, 36px);
+  font-size: clamp(16px, 2vw, 18px);
 }
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 850px) {
   .mobile {
     flex-direction: column;
-    gap: 20px;
+    gap: clamp(10px, 2vw, 20px);
   }
 }
-
 .text {
-  font-size: 10vw;
+  font-size: clamp(1rem, 5vw, 3rem);
   text-shadow: 0px 1px 16px rgba(0, 0, 0, 0.4);
 }
-
-.button{
+.button {
   display: flex;
-  width: 200px;
+  width: clamp(200px, 30vw, 220px);
   justify-content: center;
   border: none;
   color: #fff;
   background-color: #9BC53D;
   border-radius: 8px;
   cursor: pointer;
+  padding: 10px;
 }
-
 .centered-container {
-    user-select: none;
-    width: 80%;
-    margin: auto;
-    margin-top: 10vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+  user-select: none;
+  width: 80%;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
-
 .box-container {
-    display: flex;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
 }
-
 .button-container {
-    margin-top: 30px;
+  opacity: 0;
+  min-height: 100px;
+}
+.button-container.visible {
+  opacity: 1;
 }
 .fullscreen {
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
   user-select: none;
-  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 48px;
+  font-size: clamp(32px, 5vw, 48px);
   z-index: 1000;
   animation: fadeIn 1s ease-in;
 }

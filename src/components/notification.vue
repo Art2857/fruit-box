@@ -18,11 +18,11 @@ const { notificationMessage, notificationVisible, hideNotification } = useNotifi
   transform: translateX(-50%);
   background-color: #f44336;
   color: white;
-  padding: 15px 25px;
+  padding: clamp(16px, 4vw, 20px) clamp(24px, 6vw, 30px);
   border-radius: 4px;
   cursor: pointer;
   z-index: 1000;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  font-size: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-size: clamp(18px, 2vw, 22px);
 }
 </style>

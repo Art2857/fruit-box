@@ -5,6 +5,7 @@ export default antfu({
   markdown: true,
   yaml: true,
   rules: {
+    'vue/no-empty-pattern': 'off',
     'ts/consistent-type-imports': 'off',
     'antfu/no-top-level-await': 'off',
     'curly': 'off',

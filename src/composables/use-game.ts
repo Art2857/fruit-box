@@ -1,10 +1,10 @@
 export enum BoxEnum {
   // eslint-disable-next-line no-unused-vars
-  APPLE = 'Ящик с яблоками',
+  APPLE = 'Яблоки',
   // eslint-disable-next-line no-unused-vars
-  MIXED = 'Ящик с яблоками и апельсинами',
+  MIXED = 'Яблоки и апельсины',
   // eslint-disable-next-line no-unused-vars
-  ORANGE = 'Ящик с апельсинами',
+  ORANGE = 'Апельсины',
 }
 
 export enum FruitEnum {
@@ -50,6 +50,7 @@ function getRandomPermutation(): { Apple: BoxEnum, AppleAndOrange: BoxEnum, Oran
 export class FruitGame {
   boxes: BoxState[]
   firstOpenedIndex: number | null = null
+  unwinnable: boolean = false
 
   constructor() {
     const permutation = getRandomPermutation()
@@ -83,6 +84,7 @@ export class FruitGame {
     const game = new FruitGame()
     game.firstOpenedIndex = json.firstOpenedIndex
     game.boxes = json.boxes
+    game.unwinnable = json.unwinnable || false
     return game
   }
 
@@ -91,12 +93,9 @@ export class FruitGame {
       if (this.firstOpenedIndex === null) {
         this.firstOpenedIndex = index
         this.boxes[index].isOpen = true
-        if (this.boxes[index].content === BoxEnum.APPLE) {
-          this.boxes[index].took = FruitEnum.APPLEFRUIT
-        } else if (this.boxes[index].content === BoxEnum.ORANGE) {
-          this.boxes[index].took = FruitEnum.ORANGEFRUIT
-        } else {
-          this.boxes[index].took = Math.random() < 0.5 ? FruitEnum.APPLEFRUIT : FruitEnum.ORANGEFRUIT
+        this.boxes[index].took = Math.random() < 0.5 ? FruitEnum.APPLEFRUIT : FruitEnum.ORANGEFRUIT
+        if (this.boxes[index].label !== BoxEnum.MIXED) {
+          this.unwinnable = true
         }
       }
     }
@@ -119,6 +118,7 @@ export class FruitGame {
   }
 
   checkGameStatus(): 'won' | 'lost' {
+    if (this.unwinnable) return 'lost'
     for (let i = 0; i < this.boxes.length; i++) {
       if (i === this.firstOpenedIndex) continue
       if (this.boxes[i].prediction !== this.boxes[i].content) {
