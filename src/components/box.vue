@@ -20,8 +20,7 @@ const emit = defineEmits<{
 
 function onPredictionChangeInternal(e: Event) {
   const target = e.target as HTMLSelectElement
-  const value = target.value as BoxEnum
-  emit('prediction-change', value)
+  emit('prediction-change', target.value as BoxEnum)
 }
 
 const { label, isOpen, prediction, took, showPrediction, canChangePrediction } = toRefs(props)
@@ -29,17 +28,21 @@ const localPrediction = ref(prediction.value || '')
 watch(prediction, (newVal) => {
   localPrediction.value = newVal || ''
 })
+
 const fruitOptions = computed(() => [
   { value: BoxEnum.APPLE, label: BoxEnum.APPLE },
   { value: BoxEnum.ORANGE, label: BoxEnum.ORANGE },
   { value: BoxEnum.MIXED, label: BoxEnum.MIXED },
 ])
+
 const boxImageSrc = computed(() => {
-  if (label.value === BoxEnum.APPLE) return './frame-apple.webp'
-  if (label.value === BoxEnum.ORANGE) return './frame-orange.webp'
-  if (label.value === BoxEnum.MIXED) return './frame-mixed.webp'
-  return ''
+  return {
+    [BoxEnum.APPLE]: './frame-apple.webp',
+    [BoxEnum.ORANGE]: './frame-orange.webp',
+    [BoxEnum.MIXED]: './frame-mixed.webp',
+  }[label.value] || ''
 })
+
 function handleClick() {
   emit('click')
 }
@@ -90,29 +93,9 @@ function handleClick() {
 </template>
 
 <style scoped>
-.hidden {
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.2s ease, visibility 0.2s;
-}
-
-.hidden.visible {
-  visibility: visible;
-  opacity: 1;
-}
-.text {
-  margin-top: 20px;
-  font-size: clamp(1rem, 2vw, 1.2rem);
-}
-.box-container {
-  margin: 12px;
-  padding: 12px;
-  text-align: center;
-  width: clamp(280px, 30vw, 300px);
-}
-.box {
-  padding-left: clamp(30px, 5vw, 40px);
-  padding-right: clamp(30px, 5vw, 40px);
-  cursor: pointer;
-}
+.hidden { visibility: hidden; opacity: 0; transition: opacity 0.2s ease, visibility 0.2s; }
+.hidden.visible { visibility: visible; opacity: 1; }
+.text { margin-top: 20px; font-size: clamp(1rem, 2vw, 1.2rem); }
+.box-container { margin: 12px; padding: 12px; text-align: center; width: clamp(280px, 30vw, 300px); }
+.box { padding-left: clamp(30px, 5vw, 40px); padding-right: clamp(30px, 5vw, 40px); cursor: pointer; }
 </style>

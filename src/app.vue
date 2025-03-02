@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import TWallpaper from '@twallpaper/vue'
 import { onMounted, ref, watch } from 'vue'
-import box from './components/box.vue'
-import notification from './components/notification.vue'
+import Box from './components/box.vue'
+import Notification from './components/notification.vue'
 import { BoxEnum, FruitGame } from './composables/use-game'
 import { useNotification } from './composables/use-notification'
 import type { TWallpaperOptions } from '@twallpaper/vue'
@@ -11,62 +11,55 @@ import type { TWallpaperOptions } from '@twallpaper/vue'
 import '@twallpaper/vue/css'
 
 const STORAGE_KEY = 'fruitGameState'
-const game = ref<FruitGame | null>(null)
+const game = ref<FruitGame>(new FruitGame())
 const gameState = ref<'playing' | 'won' | 'lost'>('playing')
 const { showNotification } = useNotification()
 const attempts = ref(1)
 const isButtonVisible = ref(false)
 
 function loadGame() {
-  const savedState = localStorage.getItem(STORAGE_KEY)
-  if (savedState) {
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved) {
     try {
-      const json = JSON.parse(savedState)
+      const json = JSON.parse(saved)
       game.value = FruitGame.fromJSON(json.game)
       gameState.value = json.gameState
       attempts.value = json.attempts || 1
     } catch {
-      game.value = new FruitGame()
-      gameState.value = 'playing'
-      attempts.value = 1
+      resetGame()
     }
-  } else {
-    game.value = new FruitGame()
-    gameState.value = 'playing'
-    attempts.value = 1
   }
 }
 
-onMounted(loadGame)
+function saveGame() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    game: game.value,
+    gameState: gameState.value,
+    attempts: attempts.value,
+  }))
+}
 
-watch([game, gameState, attempts], () => {
-  if (game.value) {
-    const stateToSave = { game: game.value, gameState: gameState.value, attempts: attempts.value }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave))
-  }
-}, { deep: true })
+function resetGame() {
+  game.value = new FruitGame()
+  gameState.value = 'playing'
+  isButtonVisible.value = false
+}
+
+onMounted(loadGame)
+watch([game, gameState, attempts], saveGame, { deep: true })
 
 function handleBoxClick(index: number) {
-  if (!game.value || gameState.value !== 'playing') return
-  try {
-    game.value.openBox(index)
-  } catch (error: any) {
-    showNotification(error.message)
-  }
+  if (gameState.value !== 'playing') return
+  game.value.openBox(index)
   isButtonVisible.value = true
 }
 
 function handlePredictionChange(index: number, value: BoxEnum) {
-  if (!game.value || gameState.value !== 'playing') return
-  try {
-    game.value.setPrediction(index, value)
-  } catch (error: any) {
-    showNotification(error.message)
-  }
+  if (gameState.value !== 'playing') return
+  game.value.setPrediction(index, value)
 }
 
 function handleCheck() {
-  if (!game.value) return
   try {
     game.value.openRemainingBoxes()
     gameState.value = game.value.checkGameStatus()
@@ -77,29 +70,13 @@ function handleCheck() {
 
 function handleRestart() {
   attempts.value++
-  localStorage.removeItem(STORAGE_KEY)
-  game.value = new FruitGame()
-  gameState.value = 'playing'
-  isButtonVisible.value = false
+  resetGame()
 }
 
-const canChangePrediction = ref(true)
-const twallpaper = ref<InstanceType<typeof TWallpaper>>()
-const options = ref<TWallpaperOptions>({
+const twallpaperOptions = ref<TWallpaperOptions>({
   animate: false,
-  colors: [
-    '#90E0EF',
-    '#48CAE4',
-    '#00B4D8',
-    '#0096C7',
-    '#0077B6',
-    '#023E8A',
-  ],
-  pattern: {
-    mask: false,
-    opacity: 0.3,
-    image: 'https://twallpaper.js.org/patterns/math.svg',
-  },
+  colors: ['#90E0EF', '#48CAE4', '#00B4D8', '#0096C7', '#0077B6', '#023E8A'],
+  pattern: { mask: false, opacity: 0.3, image: 'https://twallpaper.js.org/patterns/math.svg' },
 })
 </script>
 
@@ -128,15 +105,13 @@ const options = ref<TWallpaperOptions>({
         Игра с коробками
       </p>
       <p style="max-width: 80rem; padding-bottom: 20px; font-size: clamp(1rem, 2vw, 1.5rem); text-shadow: 0px 1px 16px rgba(0, 0, 0, 0.4);">
-        Есть три коробки: в одной лежат только яблоки, в другой — только апельсины, а в третьей — и яблоки, и апельсины. Однако все коробки подписаны неправильно: на коробке с яблоками не может быть написано "яблоки", на коробке с апельсинами — "апельсины", и на коробке с обоими фруктами — "яблоки и апельсины". Вам можно достать только один фрукт из любой коробки и по нему определить содержимое остальных.
+        Есть три коробки: в одной лежат только яблоки, в другой — только апельсины, а в третьей — и яблоки, и апельсины. Однако все коробки подписаны неправильно. Вам можно достать только один фрукт из любой коробки и по нему определить содержимое остальных.
         <b>Опишите алгоритм, как гарантированно определить, что находится в каждой коробке.</b>
         <br><br>
-        <b style="color: #992211;">
-          Вы можете открыть только одну коробку!
-        </b>
+        <b style="color: #992211;">Вы можете открыть только одну коробку!</b>
       </p>
-      <div v-if="game" class="box-container mobile">
-        <box
+      <div class="box-container mobile">
+        <Box
           v-for="(b, index) in game.boxes"
           :key="index"
           :label="b.label"
@@ -145,96 +120,33 @@ const options = ref<TWallpaperOptions>({
           :took="b.took"
           :prediction="b.prediction"
           :show-prediction="game.firstOpenedIndex !== null && index !== game.firstOpenedIndex"
-          :can-change-prediction="canChangePrediction"
+          :can-change-prediction="true"
           @click="handleBoxClick(index)"
           @prediction-change="handlePredictionChange(index, $event)"
         />
       </div>
-      <div
-        class="button-container"
-        :class="{ visible: isButtonVisible }"
-      >
+      <div class="button-container" :class="{ visible: isButtonVisible }">
         <button class="button" style="background-color: #023E8A; margin-bottom: 40px;" @click="handleCheck">
           Проверить
         </button>
       </div>
-      <TWallpaper ref="twallpaper" :options="options" />
+      <TWallpaper :options="twallpaperOptions" />
     </div>
-    <notification />
+    <Notification />
   </div>
 </template>
 
 <style scoped>
-button {
-  padding: clamp(12px, 2.5vw, 24px) clamp(24px, 4vw, 36px);
-  font-size: clamp(16px, 2vw, 18px);
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@media screen and (max-width: 850px) {
-  .mobile {
-    flex-direction: column;
-    gap: clamp(10px, 2vw, 20px);
-  }
-}
-.text {
-  font-size: clamp(1rem, 5vw, 3rem);
-  text-shadow: 0px 1px 16px rgba(0, 0, 0, 0.4);
-}
-.button {
-  display: flex;
-  width: clamp(200px, 30vw, 220px);
-  justify-content: center;
-  border: none;
-  color: #fff;
-  background-color: #9BC53D;
-  border-radius: 8px;
-  cursor: pointer;
-  padding: 10px;
-}
-.centered-container {
-  user-select: none;
-  width: 80%;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-.box-container {
-  display: flex;
-  justify-content: center;
-}
-.button-container {
-  opacity: 0;
-  min-height: 100px;
-}
-.button-container.visible {
-  opacity: 1;
-}
-.fullscreen {
-  height: 100vh;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  font-size: clamp(32px, 5vw, 48px);
-  z-index: 1000;
-  animation: fadeIn 1s ease-in;
-}
-.loss-screen {
-  background-color: #404E4D;
-  color: #fff;
-}
-.win-screen {
-  background-color: #9BC53D;
-  color: #fff;
-}
+button { padding: clamp(12px, 2.5vw, 24px) clamp(24px, 4vw, 36px); font-size: clamp(16px, 2vw, 18px); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@media screen and (max-width: 850px) { .mobile { flex-direction: column; gap: clamp(10px, 2vw, 20px); } }
+.text { font-size: clamp(1rem, 5vw, 3rem); text-shadow: 0px 1px 16px rgba(0, 0, 0, 0.4); }
+.button { display: flex; width: clamp(200px, 30vw, 220px); justify-content: center; border: none; color: #fff; background-color: #9BC53D; border-radius: 8px; cursor: pointer; padding: 10px; }
+.centered-container { user-select: none; width: 80%; margin: auto; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.box-container { display: flex; justify-content: center; }
+.button-container { opacity: 0; min-height: 100px; }
+.button-container.visible { opacity: 1; }
+.fullscreen { height: 100vh; align-items: center; justify-content: center; user-select: none; display: flex; font-size: clamp(32px, 5vw, 48px); z-index: 1000; animation: fadeIn 1s ease-in; }
+.loss-screen { background-color: #404E4D; color: #fff; }
+.win-screen { background-color: #9BC53D; color: #fff; }
 </style>
