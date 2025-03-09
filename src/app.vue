@@ -1,76 +1,41 @@
 <script lang="ts" setup>
 import TWallpaper from '@twallpaper/vue'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref } from 'vue'
 import Box from './components/box.vue'
 import Notification from './components/notification.vue'
-import { BoxEnum, FruitGame } from './composables/use-game'
+import { BoxEnum } from './composables/use-game'
 import { useNotification } from './composables/use-notification'
+import { useFruitGameStore } from './stores/fruit-game-store'
 import type { TWallpaperOptions } from '@twallpaper/vue'
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-expect-error
 import '@twallpaper/vue/css'
 
-const STORAGE_KEY = 'fruitGameState'
-const game = ref<FruitGame>(new FruitGame())
-const gameState = ref<'playing' | 'won' | 'lost'>('playing')
+const gameStore = useFruitGameStore()
 const { showNotification } = useNotification()
-const attempts = ref(1)
-const isButtonVisible = ref(false)
 
-function loadGame() {
-  const saved = localStorage.getItem(STORAGE_KEY)
-  if (saved) {
-    try {
-      const json = JSON.parse(saved)
-      game.value = FruitGame.fromJSON(json.game)
-      gameState.value = json.gameState
-      attempts.value = json.attempts || 1
-    } catch {
-      resetGame()
-    }
-  }
-}
-
-function saveGame() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    game: game.value,
-    gameState: gameState.value,
-    attempts: attempts.value,
-  }))
-}
-
-function resetGame() {
-  game.value = new FruitGame()
-  gameState.value = 'playing'
-  isButtonVisible.value = false
-}
-
-onMounted(loadGame)
-watch([game, gameState, attempts], saveGame, { deep: true })
+onMounted(() => {
+  gameStore.loadState()
+})
 
 function handleBoxClick(index: number) {
-  if (gameState.value !== 'playing') return
-  game.value.openBox(index)
-  isButtonVisible.value = true
+  gameStore.openBox(index)
 }
 
 function handlePredictionChange(index: number, value: BoxEnum) {
-  if (gameState.value !== 'playing') return
-  game.value.setPrediction(index, value)
-}
-
-function handleCheck() {
   try {
-    game.value.openRemainingBoxes()
-    gameState.value = game.value.checkGameStatus()
+    gameStore.setPrediction(index, value)
   } catch (error: any) {
     showNotification(error.message)
   }
 }
 
-function handleRestart() {
-  attempts.value++
-  resetGame()
+function handleCheck() {
+  try {
+    gameStore.checkGame()
+  } catch (error: any) {
+    showNotification(error.message)
+  }
 }
 
 const twallpaperOptions = ref<TWallpaperOptions>({
@@ -81,22 +46,22 @@ const twallpaperOptions = ref<TWallpaperOptions>({
 </script>
 
 <template>
-  <div v-if="gameState === 'lost'" class="loss-screen fullscreen">
+  <div v-if="gameStore.gameState === 'lost'" class="loss-screen fullscreen">
     <div style="display: flex; flex-direction: column; align-items: center;">
       <div class="text">
         Ты проиграл
       </div>
-      <button class="button" @click="handleRestart">
+      <button class="button" @click="gameStore.restart">
         Начать заново
       </button>
     </div>
   </div>
-  <div v-else-if="gameState === 'won'" class="win-screen fullscreen" style="display: flex; flex-direction: column; align-items: center;">
+  <div v-else-if="gameStore.gameState === 'won'" class="win-screen fullscreen" style="display: flex; flex-direction: column; align-items: center;">
     <div class="text">
       Ты победил
     </div>
     <div class="text" style="font-size: clamp(32px, 5vw, 48px);">
-      {{ `Попыток потрачено: ${attempts}` }}
+      {{ `Попыток потрачено: ${gameStore.attempts}` }}
     </div>
   </div>
   <div v-else class="fullscreen">
@@ -112,20 +77,20 @@ const twallpaperOptions = ref<TWallpaperOptions>({
       </p>
       <div class="box-container mobile">
         <Box
-          v-for="(b, index) in game.boxes"
+          v-for="(b, index) in gameStore.boxes"
           :key="index"
           :label="b.label"
           :is-open="b.isOpen"
           :content="b.content"
           :took="b.took"
           :prediction="b.prediction"
-          :show-prediction="game.firstOpenedIndex !== null && index !== game.firstOpenedIndex"
+          :show-prediction="gameStore.firstOpenedIndex !== null && index !== gameStore.firstOpenedIndex"
           :can-change-prediction="true"
           @click="handleBoxClick(index)"
           @prediction-change="handlePredictionChange(index, $event)"
         />
       </div>
-      <div class="button-container" :class="{ visible: isButtonVisible }">
+      <div class="button-container" :class="{ visible: gameStore.isButtonVisible }">
         <button class="button" style="background-color: #023E8A; margin-bottom: 40px;" @click="handleCheck">
           Проверить
         </button>

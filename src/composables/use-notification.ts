@@ -8,7 +8,11 @@ export function useNotification() {
   function showNotification(message: string, duration = 3000) {
     notificationMessage.value = message
     notificationVisible.value = true
-    if (notificationTimeout) clearTimeout(notificationTimeout)
+
+    if (notificationTimeout) {
+      clearTimeout(notificationTimeout)
+    }
+
     notificationTimeout = window.setTimeout(() => {
       notificationVisible.value = false
       notificationTimeout = null
@@ -17,8 +21,16 @@ export function useNotification() {
 
   function hideNotification() {
     notificationVisible.value = false
-    if (notificationTimeout) clearTimeout(notificationTimeout)
+    if (notificationTimeout) {
+      clearTimeout(notificationTimeout)
+      notificationTimeout = null
+    }
   }
 
-  return { notificationMessage, notificationVisible, showNotification, hideNotification }
+  return {
+    notificationMessage,
+    notificationVisible,
+    showNotification,
+    hideNotification,
+  }
 }
