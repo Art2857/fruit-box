@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import TWallpaper from '@twallpaper/vue'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import Box from './components/box.vue'
 import Notification from './components/notification.vue'
 import { BoxEnum } from './composables/use-game'
@@ -13,10 +13,6 @@ import '@twallpaper/vue/css'
 
 const gameStore = useFruitGameStore()
 const { showNotification } = useNotification()
-
-onMounted(() => {
-  gameStore.loadState()
-})
 
 function handleBoxClick(index: number) {
   gameStore.openBox(index)

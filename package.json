@@ -16,6 +16,7 @@
     "@twallpaper/vue": "2.1.2",
     "esbuild": "0.25.0",
     "pinia": "3.0.1",
+    "pinia-plugin-persistedstate": "4.2.0",
     "typescript": "5.6.3",
     "vite-svg-loader": "^5.1.0",
     "vue": "^3.5.13"
