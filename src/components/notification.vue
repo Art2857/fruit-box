@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useNotification } from '../composables/use-notification'
 
-const { notificationMessage, notificationVisible, hideNotification } = useNotification()
+const { notificationVisible, notificationMessage, hideNotification } = useNotification()
 </script>
 
 <template>

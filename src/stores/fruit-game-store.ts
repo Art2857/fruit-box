@@ -5,39 +5,14 @@ export const useFruitGameStore = defineStore('fruitGame', {
   state: () => ({
     game: new FruitGame(),
     gameState: 'playing' as 'playing' | 'won' | 'lost',
+    attempts: 1,
+    isButtonVisible: false,
   }),
   getters: {
     boxes: (state) => state.game.boxes,
     firstOpenedIndex: (state) => state.game.firstOpenedIndex,
   },
   actions: {
-    openBox(index: number) {
-      if (this.gameState !== 'playing') return
-      try {
-        this.game.openBox(index)
-        if (this.game.boxes.every(box => box.isOpen)) {
-          this.gameState = this.game.checkGameStatus() === 'won' ? 'won' : 'lost'
-        }
-      } catch (error: any) {
-        alert(error.message)
-      }
-    },
-    setPrediction(index: number, prediction: BoxEnum) {
-      if (this.gameState !== 'playing') return
-      try {
-        this.game.setPrediction(index, prediction)
-      } catch (error: any) {
-        alert(error.message)
-      }
-    },
-    restartGame() {
-      this.game = new FruitGame()
-      this.gameState = 'playing'
-    },
-    saveState() {
-      const stateToSave = { game: this.game, gameState: this.gameState }
-      localStorage.setItem('fruitGameState', JSON.stringify(stateToSave))
-    },
     loadState() {
       const savedState = localStorage.getItem('fruitGameState')
       if (savedState) {
@@ -45,11 +20,59 @@ export const useFruitGameStore = defineStore('fruitGame', {
           const json = JSON.parse(savedState)
           this.game = FruitGame.fromJSON(json.game)
           this.gameState = json.gameState
+          this.attempts = json.attempts || 1
         } catch {
-          this.game = new FruitGame()
-          this.gameState = 'playing'
+          this.resetGame()
         }
       }
+    },
+
+    saveState() {
+      localStorage.setItem('fruitGameState', JSON.stringify({
+        game: this.game,
+        gameState: this.gameState,
+        attempts: this.attempts,
+      }))
+    },
+
+    resetGame() {
+      this.game = new FruitGame()
+      this.gameState = 'playing'
+      this.isButtonVisible = false
+    },
+
+    openBox(index: number) {
+      if (this.gameState !== 'playing') return
+      this.game.openBox(index)
+      this.isButtonVisible = true
+      this.saveState()
+    },
+
+    setPrediction(index: number, prediction: BoxEnum) {
+      if (this.gameState !== 'playing') return
+      try {
+        this.game.setPrediction(index, prediction)
+        this.saveState()
+      } catch (error: any) {
+        throw new Error(error.message)
+      }
+    },
+
+    checkGame() {
+      if (this.gameState !== 'playing') return
+      try {
+        this.game.openRemainingBoxes()
+        this.gameState = this.game.checkGameStatus()
+        this.saveState()
+      } catch (error: any) {
+        throw new Error(error.message)
+      }
+    },
+
+    restart() {
+      this.attempts++
+      this.resetGame()
+      this.saveState()
     },
   },
 })
