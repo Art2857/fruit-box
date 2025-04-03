@@ -1,40 +1,29 @@
-export enum BoxEnum {
-  // eslint-disable-next-line no-unused-vars
-  APPLE = 'Яблоки',
-  // eslint-disable-next-line no-unused-vars
-  MIXED = 'Яблоки и апельсины',
-  // eslint-disable-next-line no-unused-vars
-  ORANGE = 'Апельсины',
-}
+export const BOX_TYPES = {
+  APPLE: 'Яблоки',
+  MIXED: 'Яблоки и апельсины',
+  ORANGE: 'Апельсины',
+} as const
 
-export enum FruitEnum {
-  // eslint-disable-next-line no-unused-vars
-  APPLEFRUIT = 'Яблоко',
-  // eslint-disable-next-line no-unused-vars
-  ORANGEFRUIT = 'Апельсин',
-}
+export const FRUIT_TYPES = {
+  APPLEFRUIT: 'Яблоко',
+  ORANGEFRUIT: 'Апельсин',
+} as const
+
+export type BoxType = typeof BOX_TYPES[keyof typeof BOX_TYPES]
+export type FruitType = typeof FRUIT_TYPES[keyof typeof FRUIT_TYPES]
 
 export interface BoxState {
-  label: BoxEnum
+  label: BoxType
   isOpen: boolean
-  content: BoxEnum
-  prediction: BoxEnum | null
-  took: FruitEnum | null
+  content: BoxType
+  prediction: BoxType | null
+  took: FruitType | null
 }
 
-function shuffleArray<T>(array: T[]): T[] {
-  const result = array.slice()
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]]
-  }
-  return result
-}
-
-function getRandomPermutation(): { Apple: BoxEnum, AppleAndOrange: BoxEnum, Orange: BoxEnum } {
+function getRandomPermutation(): { Apple: BoxType, AppleAndOrange: BoxType, Orange: BoxType } {
   const perms = [
-    { Apple: BoxEnum.ORANGE, AppleAndOrange: BoxEnum.APPLE, Orange: BoxEnum.MIXED },
-    { Apple: BoxEnum.MIXED, AppleAndOrange: BoxEnum.ORANGE, Orange: BoxEnum.APPLE },
+    { Apple: BOX_TYPES.ORANGE, AppleAndOrange: BOX_TYPES.APPLE, Orange: BOX_TYPES.MIXED },
+    { Apple: BOX_TYPES.MIXED, AppleAndOrange: BOX_TYPES.ORANGE, Orange: BOX_TYPES.APPLE },
   ]
   return perms[Math.floor(Math.random() * perms.length)]
 }
@@ -45,11 +34,11 @@ export class FruitGame {
 
   constructor() {
     const permutation = getRandomPermutation()
-    this.boxes = shuffleArray([
-      { label: BoxEnum.APPLE, isOpen: false, content: permutation.Apple, prediction: null, took: null },
-      { label: BoxEnum.MIXED, isOpen: false, content: permutation.AppleAndOrange, prediction: null, took: null },
-      { label: BoxEnum.ORANGE, isOpen: false, content: permutation.Orange, prediction: null, took: null },
-    ])
+    this.boxes = [
+      { label: BOX_TYPES.APPLE, isOpen: false, content: permutation.Apple, prediction: null, took: null },
+      { label: BOX_TYPES.MIXED, isOpen: false, content: permutation.AppleAndOrange, prediction: null, took: null },
+      { label: BOX_TYPES.ORANGE, isOpen: false, content: permutation.Orange, prediction: null, took: null },
+    ]
   }
 
   static fromJSON(json: any): FruitGame {
@@ -64,9 +53,9 @@ export class FruitGame {
     this.firstOpenedIndex = index
     this.boxes[index].isOpen = true
     const content = this.boxes[index].content
-    this.boxes[index].took = content === BoxEnum.MIXED
-      ? (Math.random() < 0.5 ? FruitEnum.APPLEFRUIT : FruitEnum.ORANGEFRUIT)
-      : content === BoxEnum.APPLE ? FruitEnum.APPLEFRUIT : FruitEnum.ORANGEFRUIT
+    this.boxes[index].took = content === BOX_TYPES.MIXED
+      ? (Math.random() < 0.5 ? FRUIT_TYPES.APPLEFRUIT : FRUIT_TYPES.ORANGEFRUIT)
+      : content === BOX_TYPES.APPLE ? FRUIT_TYPES.APPLEFRUIT : FRUIT_TYPES.ORANGEFRUIT
   }
 
   openRemainingBoxes(): void {
@@ -76,12 +65,12 @@ export class FruitGame {
     this.boxes.forEach(b => b.isOpen = true)
   }
 
-  setPrediction(index: number, prediction: BoxEnum): void {
+  setPrediction(index: number, prediction: BoxType): void {
     if (!this.boxes[index].isOpen) this.boxes[index].prediction = prediction
   }
 
   checkGameStatus(): 'won' | 'lost' {
-    if (this.firstOpenedIndex === null || this.boxes[this.firstOpenedIndex].label !== BoxEnum.MIXED) return 'lost'
+    if (this.firstOpenedIndex === null || this.boxes[this.firstOpenedIndex].label !== BOX_TYPES.MIXED) return 'lost'
     return this.boxes.every((b, i) => i === this.firstOpenedIndex || b.prediction === b.content) ? 'won' : 'lost'
   }
 }

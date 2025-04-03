@@ -3,10 +3,10 @@ import TWallpaper from '@twallpaper/vue'
 import { ref } from 'vue'
 import Box from './components/box.vue'
 import Notification from './components/notification.vue'
-import { BoxEnum } from './composables/use-game'
 import { useNotification } from './composables/use-notification'
 import { useFruitGameStore } from './stores/fruit-game-store'
 import type { TWallpaperOptions } from '@twallpaper/vue'
+import type { BoxType } from './composables/use-game'
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-expect-error
 import '@twallpaper/vue/css'
@@ -18,7 +18,7 @@ function handleBoxClick(index: number) {
   gameStore.openBox(index)
 }
 
-function handlePredictionChange(index: number, value: BoxEnum) {
+function handlePredictionChange(index: number, value: BoxType) {
   try {
     gameStore.setPrediction(index, value)
   } catch (error: any) {

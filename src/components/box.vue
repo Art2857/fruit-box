@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import { computed, ref, toRefs, watch } from 'vue'
-import { BoxEnum } from '../composables/use-game'
+import { BOX_TYPES } from '../composables/use-game'
+import type { BoxType } from '../composables/use-game'
 
 interface Props {
-  label: BoxEnum
+  label: BoxType
   isOpen: boolean
-  content: BoxEnum | null
-  prediction: BoxEnum | null
+  content: BoxType | null
+  prediction: BoxType | null
   took: string | null
   showPrediction: boolean
   canChangePrediction: boolean
@@ -15,12 +16,12 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits<{
   (event: 'click'): void
-  (event: 'prediction-change', value: BoxEnum): void
+  (event: 'prediction-change', value: BoxType): void
 }>()
 
 function onPredictionChangeInternal(e: Event) {
   const target = e.target as HTMLSelectElement
-  emit('prediction-change', target.value as BoxEnum)
+  emit('prediction-change', target.value as BoxType)
 }
 
 const { label, isOpen, prediction, took, showPrediction, canChangePrediction } = toRefs(props)
@@ -30,16 +31,16 @@ watch(prediction, (newVal) => {
 })
 
 const fruitOptions = computed(() => [
-  { value: BoxEnum.APPLE, label: BoxEnum.APPLE },
-  { value: BoxEnum.ORANGE, label: BoxEnum.ORANGE },
-  { value: BoxEnum.MIXED, label: BoxEnum.MIXED },
+  { value: BOX_TYPES.APPLE, label: BOX_TYPES.APPLE },
+  { value: BOX_TYPES.ORANGE, label: BOX_TYPES.ORANGE },
+  { value: BOX_TYPES.MIXED, label: BOX_TYPES.MIXED },
 ])
 
 const boxImageSrc = computed(() => {
   return {
-    [BoxEnum.APPLE]: './frame-apple.webp',
-    [BoxEnum.ORANGE]: './frame-orange.webp',
-    [BoxEnum.MIXED]: './frame-mixed.webp',
+    [BOX_TYPES.APPLE]: './frame-apple.webp',
+    [BOX_TYPES.ORANGE]: './frame-orange.webp',
+    [BOX_TYPES.MIXED]: './frame-mixed.webp',
   }[label.value] || ''
 })
 
@@ -52,10 +53,10 @@ function handleClick() {
   <div class="box-container" style="user-select: none;">
     <div v-if="!isOpen" class="box" @click="handleClick">
       <div style="min-height: clamp(80px, 10vh, 90px); padding-bottom: 20px;">
-        <img style="width: clamp(160px, 25vw, 180px);" :src="boxImageSrc" alt="box">
+        <img style="width: clamp(160px, 25vw, 180px);" :src="boxImageSrc" alt="box-frame">
       </div>
       <transition name="fade">
-        <img v-if="!isOpen" style="width: clamp(180px, 28vw, 200px); height: clamp(180px, 28vw, 200px);" src="/box-closed.webp" alt="box">
+        <img v-if="!isOpen" style="width: clamp(180px, 28vw, 200px); height: clamp(180px, 28vw, 200px);" src="/box-closed.webp" alt="box-closed">
       </transition>
       <div style="min-height: 50px; display: flex; justify-content: center; align-items: center;">
         <select
@@ -78,10 +79,10 @@ function handleClick() {
     </div>
     <div v-else class="box">
       <div style="min-height: clamp(80px, 10vh, 90px); padding-bottom: 20px;">
-        <img style="width: clamp(160px, 25vw, 180px);" :src="boxImageSrc" alt="box">
+        <img style="width: clamp(160px, 25vw, 180px);" :src="boxImageSrc" alt="box-frame">
       </div>
       <transition>
-        <img v-if="isOpen" style="width: clamp(180px, 28vw, 200px); height: clamp(180px, 28vw, 200px);" src="/box-opened.webp" alt="box">
+        <img v-if="isOpen" style="width: clamp(180px, 28vw, 200px); height: clamp(180px, 28vw, 200px);" src="/box-opened.webp" alt="box-opened">
       </transition>
       <div>
         <div class="text taken" :class="{ visible: took }">

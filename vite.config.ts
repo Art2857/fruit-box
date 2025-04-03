@@ -6,4 +6,7 @@ import svgLoader from 'vite-svg-loader'
 export default defineConfig({
   plugins: [vue(), svgLoader()],
   base: '/fruit-box/',
+  server: {
+    port: 3010,
+  },
 })
